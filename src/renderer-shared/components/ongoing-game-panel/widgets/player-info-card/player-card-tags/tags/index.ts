@@ -22,6 +22,7 @@ import { GREAT_PERFORMANCE_TAG } from './great-performance'
 import { MET_TAG } from './met'
 import { SUSPICIOUS_FLASH_POSITION_TAG } from './suspicious-flash-position'
 import { TAGGED_TAG } from './tagged'
+import { ZHANGMENG_PROFILE_TAG } from './zhangmeng-profile'
 
 export const PLAYER_CARD_TAGS: PlayerCardTagDefinition[] = [
   SELF_TAG,
@@ -44,5 +45,6 @@ export const PLAYER_CARD_TAGS: PlayerCardTagDefinition[] = [
   AVERAGE_ENEMY_MISSING_PINGS_TAG,
   AVERAGE_VISION_SCORE_TAG,
   AVERAGE_KILL_DAMAGE_EFFICIENCY_TAG,
-  AKARI_SCORE_TAG
+  AKARI_SCORE_TAG,
+  ZHANGMENG_PROFILE_TAG
 ]
