@@ -32,6 +32,7 @@ import { SavedPlayerMain } from '@main/shards/saved-player'
 import { SelfUpdateMain } from '@main/shards/self-update'
 import { SettingFactoryMain } from '@main/shards/setting-factory'
 import { SgpMain } from '@main/shards/sgp'
+import { ZhangmengMain } from '@main/shards/zhangmeng'
 import { StatisticsMain } from '@main/shards/statistics'
 import { StorageMain } from '@main/shards/storage'
 import { TrayMain } from '@main/shards/tray'
@@ -345,6 +346,7 @@ export function bootstrap() {
     manager.use(RespawnTimerMain)
     manager.use(SavedPlayerMain)
     manager.use(SgpMain)
+    manager.use(ZhangmengMain)
     manager.use(StatisticsMain)
 
     // other

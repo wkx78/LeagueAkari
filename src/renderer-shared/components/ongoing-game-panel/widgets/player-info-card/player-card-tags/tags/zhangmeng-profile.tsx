@@ -13,7 +13,7 @@ const DISPLAY_FIELD = 'latestLocation'
 
 const values = reactive(new Map<string, string>())
 const inflight = new Set<string>()
-const failed = new Set<string>()
+const retryAfter = new Map<string, number>()
 
 interface PendingPlayer {
   puuid: string
@@ -35,6 +35,18 @@ function latestGameId(ctx: PlayerCardTagContext, puuid: string): number {
   }
 
   return latest
+}
+
+// 把结果转存到主进程，供自定义模板读取
+function reportToMain(profiles: Record<string, Record<string, unknown>>): void {
+  const manager = (window as any).akariManager
+  const ipc = manager?.getInstance('akari-ipc-renderer')
+
+  if (!ipc) {
+    return
+  }
+
+  void ipc.call('zhangmeng-main', 'update', profiles).catch(() => {})
 }
 
 function schedule(): void {
@@ -78,6 +90,8 @@ async function flush(): Promise<void> {
       data?: Array<Record<string, unknown>>
     }
 
+    const fetched: Record<string, Record<string, unknown>> = {}
+
     for (const item of json.data ?? []) {
       const puuid = typeof item?.puuid === 'string' ? item.puuid : ''
       const value = item?.[DISPLAY_FIELD]
@@ -88,13 +102,18 @@ async function flush(): Promise<void> {
 
       if (item?.ok && typeof value === 'string' && value) {
         values.set(puuid, value)
+        fetched[puuid] = item
       } else {
-        failed.add(puuid)
+        retryAfter.set(puuid, Date.now() + 60_000)
       }
+    }
+
+    if (Object.keys(fetched).length > 0) {
+      reportToMain(fetched)
     }
   } catch (error) {
     for (const player of batch) {
-      failed.add(player.puuid)
+      retryAfter.set(player.puuid, Date.now() + 25_000)
     }
 
     console.warn('[zhangmeng] 查询失败：', error)
@@ -116,7 +135,13 @@ export const ZHANGMENG_PROFILE_TAG: PlayerCardTagDefinition = {
       }
     }
 
-    if (inflight.has(ctx.puuid) || pending.has(ctx.puuid) || failed.has(ctx.puuid)) {
+    if (inflight.has(ctx.puuid) || pending.has(ctx.puuid)) {
+      return null
+    }
+
+    const retryAt = retryAfter.get(ctx.puuid)
+
+    if (retryAt && Date.now() < retryAt) {
       return null
     }
 
